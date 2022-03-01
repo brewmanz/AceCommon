@@ -106,6 +106,10 @@ class PrintStrBase: public Print {
     void flush() /*override*/ {
       index_ = 0;
     }
+    /**
+     * Clear the internal buffer, alternative in attempting some compatibility with other options e.g. PrintString
+     */
+    inline void clear() { flush(); }
 
     /**
      * Return the NUL terminated c-string buffer. After the buffer is no longer
@@ -116,9 +120,12 @@ class PrintStrBase: public Print {
       buf_[index_] = '\0';
       return buf_;
     }
+    /**
+     * Return the NUL terminated c-string buffer, alternative in attempting some compatibility with other options e.g. PrintString
+     */
+    inline const char* getString() const { return cstr(); }
 
     /** Backwards compatible version of cstr(). New code should use cstr(). */
-    [[deprecated("Use 'cstr()' instead")]]
     const char* getCstr() const { return cstr(); }
 
     /** Return the length of the internal c-string buffer. */
