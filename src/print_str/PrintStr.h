@@ -324,6 +324,32 @@ class PrintStrN: public PrintStrBase {
     ~PrintStrN() {
       delete[] buf_;
     }
+
+    /** allow simple assignment of flash string. */
+    // ideal but prohibited // PrintStrN& operator = (const __FlashStringHelper *str){
+    const __FlashStringHelper * operator = (const __FlashStringHelper *str){
+      if (str) {
+        flush();
+        write(str, strlen_P((PGM_P)str));
+      } else {
+        // follow write() philosophy and leave existing value as-is
+      }
+      return str;
+      // ideal but prohibited // return *this;
+    }
+
+    /** allow simple assignment of sz/C string. */
+    // ideal but prohibited // PrintStrN& operator = (const char *str){
+    const char * operator = (const char *str){
+      if (str) {
+        flush();
+        write((const uint8_t*)str, strlen(str));
+      } else {
+        // follow write() philosophy and leave existing value as-is
+      }
+      return str;
+      // ideal but prohibited // return *this;
+    }
 };
 
 }
