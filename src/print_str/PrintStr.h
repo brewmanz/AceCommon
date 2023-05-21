@@ -141,11 +141,17 @@ class PrintStrBase: public Print {
       return buf_;
     }
 
-    /** Backwards compatible version of cstr(). New code should use cstr(). */
-    const char* getCstr() const { return cstr(); }
-
     /** Return the length of the internal c-string buffer. */
     size_t length() const { return index_; }
+
+  private: // add this to refactor 'old' code; comment out to allow 'old' code to work
+    /** Backwards compatible version of flush(). New code should use flush(). */
+    void clear() { flush(); }
+
+    /** Backwards compatible version of cstr(). New code should use cstr(). */
+    const char* getCstr() const { return cstr(); }
+    /** Backwards compatible version of cstr(). New code should use cstr(). */
+    const char* getString() const { return cstr(); }
 
   protected:
     /**
