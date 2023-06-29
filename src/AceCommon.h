@@ -36,42 +36,44 @@ SOFTWARE.
 #ifndef ACE_COMMON_H
 #define ACE_COMMON_H
 
-// Blacklist boards using new Arduino API due to incompatibilities. This
-// currently includes all megaAVR boards and SAMD21 boards using arduino::samd
-// >= 1.8.10. Boards using arduino:samd <= 1.8.9 or SparkFun:samd are fine.
-#if defined(ARDUINO_ARCH_MEGAAVR)
-#error MegaAVR not supported, https://github.com/bxparks/AceCommon/issues/8
-
-#elif defined(ARDUINO_ARCH_SAMD) && defined(ARDUINO_API_VERSION)
-#error SAMD21 with arduino:samd >= 1.8.10 not supported, https://github.com/bxparks/AceCommon/issues/9
-
-#elif defined(ARDUINO_API_VERSION)
+// Blacklist platforms using https://github.com/arduino/ArduinoCore-api due to
+// incompatibilities. This currently includes all megaAVR boards and SAMD21
+// boards using arduino::samd >= 1.8.10.
+#if defined(ARDUINO_API_VERSION)
 #error Platforms using ArduinoCore-API not supported
-
 #endif
 
 #include "arithmetic/arithmetic.h"
+
 #include "pstrings/pstrings.h"
+#include "fstrings/FCString.h"
+#include "fstrings/FlashString.h"
+#include "kstrings/KString.h"
+#include "tstrings/tstrings.h"
+#include "cstrings/copyReplace.h"
+
 #include "print_str/PrintStr.h"
+
 #include "print_utils/printPadTo.h"
 #include "print_utils/printfTo.h"
+#include "print_utils/printReplaceTo.h"
+#include "print_utils/printIntAsFloat.h"
+
 #include "timing_stats/TimingStats.h"
 #include "timing_stats/GenericStats.h"
+
 #include "url_encoding/url_encoding.h"
-#include "fstrings/FCString.h"
+#include "backslash_x_encoding/backslash_x_encoding.h"
+
 #include "hash/djb2.h"
-#include "kstrings/KString.h"
+
 #include "algorithms/binarySearch.h"
 #include "algorithms/isSorted.h"
 #include "algorithms/linearSearch.h"
-#include "cstrings/copyReplace.h"
-#include "print_utils/printReplaceTo.h"
-#include "fstrings/FlashString.h"
-#include "print_utils/printIntAsFloat.h"
 #include "algorithms/reverse.h"
 
 // Version format: "xx.yy.zz" => xxyyzz (without leading 0)
-#define ACE_COMMON_VERSION 10407
-#define ACE_COMMON_VERSION_STRING "1.4.7"
+#define ACE_COMMON_VERSION 10602
+#define ACE_COMMON_VERSION_STRING "1.6.2"
 
 #endif
