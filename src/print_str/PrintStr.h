@@ -111,6 +111,11 @@ class PrintStrBase: public Print {
      * Return the NUL terminated c-string buffer. After the buffer is no longer
      * needed, the flush() method should be called to reset the internal buffer
      * index to 0.
+     *
+     * The `cstr()` name was deliberately chosen to be different from the
+     * `c_str()` method in the C++ `std::string` class or the Arduino `String`
+     * class. When we see an object being called with `cstr()`, we can infer
+     * that its type is `PrintStr` or `PrintStrN`.
      */
     const char* cstr() const {
       buf_[index_] = '\0';
