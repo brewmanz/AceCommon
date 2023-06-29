@@ -42,10 +42,26 @@ automatically:
     * `int strcmp_PP(const char* a, const char* b)`
     * `const char* strchr_P(const char* s, char c)` (ESP8266 and ESP32 only)
     * `const char* strrchr_P(const char* s, char c)` (ESP8266 and ESP32 only)
+* [src/tstrings/tstrings.h](src/tstrings/tstrings.h)
+    * Overloaded functions which provide a thin layer of indirection around a
+      `const char*` or a `const __FlashStringHelper*`.
+    * Allows writing of template code which is agnostic to whether the string
+      is stored in normal memory or flash memory. The compiler will choose the
+      exact implementation at compile-time.
+    * `strcat_T()`
+    * `strchr_T()`
+    * `strcmp_T()`
+    * `strcpy_T()`
+    * `strlen_T()`
+    * `strncat_T()`
+    * `strncmp_T()`
+    * `strncpy_T()`
+    * `strrchr_T()`
 * [src/fstrings/FCString.h](src/fstrings/FCString.h)
     * `class FCString`
     * An object that can hold either a C-string (`const char*`) or an
-      F-string (`const __FlashStringHelper*`).
+      F-string (`const __FlashStringHelper*`), and a type discrimination tag
+      that allows the client code to determine the type at runtime.
 * [src/fstrings/FlashString.h](src/fstrings/FlashString.h)
     * [src/fstrings/README.md](src/fstrings/README.md)
     * `class FlashString`
@@ -56,29 +72,42 @@ automatically:
 * [src/kstrings/KString.h](src/kstrings/KString.h)
     * Wrapper around a c-string or an f-string which supports compression
       using keyword substitution from a dictionary. Up to 31 keywords supported.
+    * The keywords dictionary itself can be in normal memory or flash memory.
     * `class KString`
 * [src/cstrings/copyReplace.h](src/cstrings/copyReplace.h)
-    * Replace a character with another character or string and copy result to
-      destination.
-    * `void copyReplaceChar(char* dst, size_t dstSize, const char* src,
-      char oldChar, char newChar)`
-    * `void copyReplaceString(char* dst, size_t dstSize, const char* src,
-      char oldChar, const char* newString)`
+    * Replace a character with another character and copy result to destination.
+      There are 2 overloaded versions:
+        * `void copyReplaceChar(char* dst, size_t dstSize, const char* src,
+        char oldChar, char newChar)`
+        * `void copyReplaceChar(char* dst, size_t dstSize,
+            const __FlashStringHelper* src, char oldChar, char newChar)`
+    * Replace a character with another string and copy result to destination.
+      There are 4 overloaded versions:
+        * `void copyReplaceString(char* dst, size_t dstSize,
+          const char* src, char oldChar, const char* newString)`
+        * `void copyReplaceString(char* dst, size_t dstSize,
+          const char* src, char oldChar,
+          const __FlashStringHelper* newString)`
+        * `void copyReplaceString(char* dst, size_t dstSize,
+          const __FlashStringHelper* src, char oldChar,
+          const char* newString)`
+        * `void copyReplaceString(char* dst, size_t dstSize,
+          const __FlashStringHelper* src, char oldChar,
+          const __FlashStringHelper* newString)`
 
 **Print to String Buffer**
 
 * [src/print_str/PrintStr.h](src/print_str/PrintStr.h)
     * [src/print_str/README.md](src/print_str/README.md)
-        * Provides classes that implement the `Print` interface so that
-          values can be printed into in-memory buffers. The string can then
-          be extracted as a normal c-string using `const char*
-          PrintStr::cstr()`.
-        * Alternative to the Arduino `String` class to avoid or reduce heap
-          fragmentation.
+    * Provides classes that implement the `Print` interface so that
+        values can be printed into in-memory buffers. The string can then
+        be extracted as a normal c-string using `const char*
+        PrintStr::cstr()`.
+    * Alternative to the Arduino `String` class to avoid or reduce heap
+        fragmentation.
     * `class PrintStrBase`
     * `class PrintStr<uint16_t SIZE>` (buffer on stack)
     * `class PrintStrN(uint16_t size)` (buffer on heap)
-
 
 **Print Utilities**
 
@@ -99,9 +128,9 @@ automatically:
         * Does not use floating point operations.
 * [src/print_utils/printfTo.h](src/print_utils/printfTo.h)
     * [src/print_utils/README.md](src/print_utils/README.md)
-        * Provides a primitive `printf()` functionality to an instance of
-          `Print` (e.g. `Serial`) for those Arduino boards without a
-          `Print.printf()` function.
+    * Provides a primitive `printf()` functionality to an instance of
+      `Print` (e.g. `Serial`) for those Arduino boards without a
+      `Print.printf()` function.
     * `void printfTo(Print& printer, const char* fmt, ...)`
 * [src/print_utils/printReplaceTo.h](src/print_utils/printReplaceTo.h)
     * Print a string while replacing a character with another character or
@@ -116,7 +145,7 @@ automatically:
     * `void printReplaceStringTo(
       Print& printer, const __FlashStringHelper* src, char oldChar,
       const char* newString)`
-* [src/print_utils/printIntAsFlost.h](src/print_utils/printIntAsFloat.h)
+* [src/print_utils/printIntAsFloat.h](src/print_utils/printIntAsFloat.h)
     * Print `uint16_t` and `uint32_t` as a floating point number with 3 decimal
       places after conceptually dividing by 1000.
     * No floating point operations are used.
@@ -125,9 +154,8 @@ automatically:
 
 * [src/timing_stats/TimingStats.h](src/timing_stats/TimingStats.h)
     * [src/timing_stats/README.md](src/timing_stats/README.md)
-        * Helper class to collect data (often durations in milliseconds) and
-          then print out various statistics such as min, max, average, and
-          count.
+    * Helper class to collect data (often durations in milliseconds) and
+      then print out various statistics such as min, max, average, and count.
     * `class TimingStats`
 * [src/timing_stats/GenericStats.h](src/timing_stats/GenericStats.h)
     * Same as `TimingStats` but templatized to support generic type `T`
@@ -186,9 +214,14 @@ automatically:
     * [src/algorithms/README.md](src/algorithms/README.md)
     * `void reverse(T data[], size_t size)`
 
-**Version**: 1.5.1 (2022-02-25)
+**Version**: 1.6.2 (2023-06-25)
 
 **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+
+**See Also**:
+
+* AceSorting (https://github.com/bxparks/AceSorting)
+* AceCRC (https://github.com/bxparks/AceCRC)
 
 ## Installation
 
@@ -251,11 +284,12 @@ These boards are tested on each release:
 
 * Arduino Nano clone (16 MHz ATmega328P)
 * SparkFun Pro Micro clone (16 MHz ATmega32U4)
+* Seeeduino XIAO M0 (SAMD21, 48 MHz ARM Cortex-M0+)
 * STM32 Blue Pill (STM32F103C8, 72 MHz ARM Cortex-M3)
+* Adafruit ItsyBitsy M4 (SAMD51, 120 MHz ARM Cortext-M4)
 * NodeMCU 1.0 (ESP-12E module, 80MHz ESP8266)
 * WeMos D1 Mini (ESP-12E module, 80 MHz ESP8266)
 * ESP32 Dev Module (ESP-WROOM-32 module, 240MHz dual core Tensilica LX6)
-* Teensy 3.2 (96 MHz ARM Cortex-M4)
 
 **Tier 2: Should work**
 
@@ -265,17 +299,12 @@ These boards should work but I don't test them as often:
 * Arduino Pro Mini clone (16 MHz ATmega328P)
 * Mini Mega 2560 (Arduino Mega 2560 compatible, 16 MHz ATmega2560)
 * Teensy LC (48 MHz ARM Cortex-M0+)
+* Teensy 3.2 (96 MHz ARM Cortex-M4)
 
 **Tier 3: May work, but not supported**
 
-* SAMD21 M0 Mini (48 MHz ARM Cortex-M0+)
-    * Arduino-branded SAMD21 boards use the ArduinoCore-API, so are explicitly
-      blacklisted. See below.
-    * Other 3rd party SAMD21 boards *may* work using the SparkFun SAMD core.
-    * However, as of SparkFun SAMD Core v1.8.6 and Arduino IDE 1.8.19, I can no
-      longer upload binaries to these 3rd party boards due to errors.
-    * Therefore, third party SAMD21 boards are now in this new Tier 3 category.
-    * The library may work on these boards, but I can no longer support them.
+* Other 3rd party SAMD21 boards *may* work if they do not use the
+  ArduinoCore-API.
 
 **Tier Blacklisted**
 
@@ -295,15 +324,16 @@ compiler errors:
 This library was developed and tested using:
 
 * [Arduino IDE 1.8.19](https://www.arduino.cc/en/Main/Software)
-* [Arduino CLI 0.20.2](https://arduino.github.io/arduino-cli)
-* [Arduino AVR Boards 1.8.4](https://github.com/arduino/ArduinoCore-avr)
-* [Arduino SAMD Boards 1.8.9](https://github.com/arduino/ArduinoCore-samd)
+* [Arduino CLI 0.31.0](https://arduino.github.io/arduino-cli)
+* [Arduino AVR Boards 1.8.6](https://github.com/arduino/ArduinoCore-avr)
 * [SparkFun AVR Boards 1.1.13](https://github.com/sparkfun/Arduino_Boards)
-* [SparkFun SAMD Boards 1.8.5](https://github.com/sparkfun/Arduino_Boards)
-* [STM32duino 2.2.0](https://github.com/stm32duino/Arduino_Core_STM32)
+* [Arduino SAMD Boards 1.8.9](https://github.com/arduino/ArduinoCore-samd)
+* [Adafruit SAMD Boards 1.7.11](https://github.com/adafruit/ArduinoCore-samd)
+* [Seeeduino SAMD Boards 1.8.4](https://github.com/Seeed-Studio/ArduinoCore-samd)
+* [STM32duino 2.5.0](https://github.com/stm32duino/Arduino_Core_STM32)
 * [ESP8266 Arduino Core 3.0.2](https://github.com/esp8266/Arduino)
-* [ESP32 Arduino Core 2.0.2](https://github.com/espressif/arduino-esp32)
-* [Teensyduino 1.56](https://www.pjrc.com/teensy/td_download.html)
+* [ESP32 Arduino Core 2.0.9](https://github.com/espressif/arduino-esp32)
+* [Teensyduino 1.57](https://www.pjrc.com/teensy/td_download.html)
 
 It should work with [PlatformIO](https://platformio.org/) but I have
 not tested it.
@@ -313,7 +343,7 @@ the [EpoxyDuino](https://github.com/bxparks/EpoxyDuino) emulation layer.
 
 ### Operating System
 
-I use Ubuntu Linux 18.04 and 20.04 for most of my development.
+I use Ubuntu Linux 22.04 for most of my development.
 
 ## License
 

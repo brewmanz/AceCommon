@@ -52,10 +52,12 @@ class KStringIterator;
  */
 class KString {
   friend class KStringIterator;
+  friend class KStringKeywords;
 
   public:
     /**
-     * Constructor around a simple c-string.
+     * Constructor around a simple c-string, and an array of keyword strings in
+     * normal memory.
      *
      * @param s NUL terminated string or nullptr
      * @param keywords an array of keywords, up to 32 slots. The first slot at
@@ -69,20 +71,88 @@ class KString {
       uint8_t numKeywords
     ):
       string_(s),
-      keywords_(keywords),
-      type_(KString::kTypeCstring),
+      keywords_((const void* const*) keywords),
+      stringType_(kTypeCstring),
+      keywordType_(kTypeCstring),
       numKeywords_(numKeywords > 0x20 ? 0x20 : numKeywords)
     {}
 
-    /** Constructor around an Arduino Flash string. */
+    /**
+     * Constructor around an f-string, and an array of keyword strings in normal
+     * memory.
+     *
+     * @param s NUL terminated string or nullptr in flash memory
+     * @param keywords an array of keywords in normal memory, up to 32 slots.
+     *        The first slot at index 0 should be `nullptr` since it cannot be
+     *        used.
+     * @param numKeywords number of keywords, including the nullptr in the 0th
+     *        position. If greater than 32, will be truncated to 32.
+     */
     explicit KString(
-      const __FlashStringHelper* fs,
+      const __FlashStringHelper* s,
       const char* const* keywords,
       uint8_t numKeywords
     ):
-      string_(fs),
-      keywords_(keywords),
-      type_(kTypeFstring),
+      string_(s),
+      keywords_((const void* const*) keywords),
+      stringType_(kTypeFstring),
+      keywordType_(kTypeCstring),
+      numKeywords_(numKeywords > 0x20 ? 0x20 : numKeywords)
+    {}
+
+    /**
+     * Constructor around a c-string, and an array of keyword strings in flash
+     * memory.
+     *
+     * The Arduino type system does not have a way to properly represent
+     * `keywords`. This parameter points to a location in flash memory, which
+     * contains an array of pointers to strings also in flash memory. With the
+     * current type system, `keywords` looks like a pointer to normal memory,
+     * which contains an array of flash memory strings.
+     *
+     * @param s NUL terminated string or nullptr in normal memory
+     * @param keywords an array of keywords in flash memory, up to 32 slots. The
+     *        first slot at index 0 should be `nullptr` since it cannot be used.
+     * @param numKeywords number of keywords, including the nullptr in the 0th
+     *        position. If greater than 32, will be truncated to 32.
+     */
+    explicit KString(
+      const char* s,
+      const __FlashStringHelper* const* keywords,
+      uint8_t numKeywords
+    ):
+      string_(s),
+      keywords_((const void* const*) keywords),
+      stringType_(kTypeCstring),
+      keywordType_(kTypeFstring),
+      numKeywords_(numKeywords > 0x20 ? 0x20 : numKeywords)
+    {}
+
+    /**
+     * Constructor around an f-string, and an array of keyword strings in flash
+     * memory.
+     *
+     * The Arduino type system does not have a way to properly represent
+     * `keywords`. This parameter points to a location in flash memory, which
+     * contains an array of pointers to strings also in flash memory. With the
+     * current type system, `keywords` looks like a pointer to normal memory,
+     * which contains an array of flash memory strings.
+     *
+     * @param s NUL terminated string or nullptr in flash memory
+     * @param keywords an array of keywords, up to 32 slots. The first slot at
+     *        index 0 should be `nullptr` since it cannot be used.
+     * @param numKeywords number of keywords, including the nullptr in the 0th
+     *        position. If greater than 32, will be truncated to 32.
+     */
+    explicit KString(
+      const __FlashStringHelper* s,
+      const __FlashStringHelper* const* keywords,
+      uint8_t numKeywords
+    ):
+      string_(s),
+      keywords_((const void* const*) keywords),
+      stringType_(kTypeFstring),
+      keywordType_(kTypeFstring),
       numKeywords_(numKeywords > 0x20 ? 0x20 : numKeywords)
     {}
 
@@ -111,8 +181,9 @@ class KString {
     // The order of the following fields is deliberate to reduce the memory
     // size of this class on 32-bit processors.
     const void* const string_;
-    const char* const* const keywords_;
-    uint8_t const type_;
+    const void* const* const keywords_;
+    uint8_t const stringType_;
+    uint8_t const keywordType_;
     uint8_t const numKeywords_;
 };
 
@@ -129,10 +200,10 @@ class KStringIterator {
     /** Constructor. */
     KStringIterator(const KString& ks) :
         ks_(ks),
-        firstType_(ks.type_),
-        secondType_(KString::kTypeCstring),
         firstPtr_((const char*) ks.string_),
-        secondPtr_(nullptr)
+        secondPtr_(nullptr),
+        firstType_(ks.stringType_),
+        secondType_(KString::kTypeCstring) // initial value can be anything
     {}
 
     /**
@@ -144,33 +215,7 @@ class KStringIterator {
      * just after the compression token. At the end of the entire string, this
      * method returns a NUL to indicate the end of string.
      */
-    char get() {
-      // We don't support recursive compression fragments (i.e. compress tokens
-      // within fragments) so this does NOT need to be a loop.
-      char c = getInternal(firstType_, firstPtr_);
-      if (c == '\0') {
-        if (secondPtr_ != nullptr) {
-          // pop the stack
-          firstType_ = secondType_;
-          firstPtr_ = secondPtr_;
-          secondPtr_ = nullptr;
-
-          // advance one character
-          firstPtr_++;
-          c = getInternal(firstType_, firstPtr_);
-        }
-      }
-
-      if (c != '\0' && c < 0x20) { // fragment keyword string
-        // push the stack
-        secondType_ = firstType_;
-        secondPtr_ = firstPtr_;
-        firstType_ = KString::kTypeCstring;
-        firstPtr_ = ks_.keywords_[(uint8_t) c];
-        c = getInternal(firstType_, firstPtr_);
-      }
-      return c;
-    }
+    char get();
 
     /** Advance the iterator one character, */
     void next() { firstPtr_++; }
@@ -183,10 +228,48 @@ class KStringIterator {
   private:
     // ordering of fields optimized to reduce gaps on 32-bit processors
     const KString& ks_;
-    uint8_t firstType_;
-    uint8_t secondType_;
     const char* firstPtr_;
     const char* secondPtr_;
+    uint8_t firstType_;
+    uint8_t secondType_;
+};
+
+/**
+ * A thin helper object around an array of `const char*` in regular memory, or
+ * an array of `const __FlashStringHelper*` in flash memory. Simplifies some
+ * code in `KString.cpp`.
+ */
+class KStringKeywords {
+  public:
+    /**
+     * @param type storage type of `keywords`, either KString::kTypeCstring
+     *        or KString::kTypeFstring
+     * @param keywords an array of pointers to strings, either in normal memory
+     *        or flash memory
+     */
+    KStringKeywords(uint8_t type, const void* const* keywords) :
+      type_(type),
+      keywords_(keywords)
+    {}
+
+    /**
+     * Return the string pointer of index i. The actual pointer type is either
+     * cstring or an fstring, depending on the `type` passed into the
+     * constructor.
+     */
+    const char* get(uint8_t i) const {
+      if (type_ == KString::kTypeCstring) {
+        auto words = (const char* const*) keywords_;
+        return words[i];
+      } else {
+        auto words = (const __FlashStringHelper* const*) keywords_;
+        return (const char*) pgm_read_ptr(words + i);
+      }
+    }
+
+  private:
+    uint8_t type_;
+    const void* const* keywords_;
 };
 
 } // ace_common

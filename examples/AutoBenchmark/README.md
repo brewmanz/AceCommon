@@ -2,7 +2,7 @@
 
 Determine the speed of various AceCommon functions and algorithms.
 
-**Version**: AceCommon v1.5.1
+**Version**: AceCommon v1.6.0
 
 **DO NOT EDIT**: This file was auto-generated using `make README.md`.
 
@@ -90,6 +90,30 @@ number of `TimingStats::update()` calls that were made.
 * Upgrade ESP32 Core from 1.0.6 to 2.0.2.
 * Upgrade Teensyduino from 1.55 to 1.56.
 
+**v1.5.2**
+
+* Upgrade tool chain
+    * Upgrade Arduino CLI from 0.20.2 to 0.27.1.
+    * Upgrade Arduino AVR Core from 1.8.4 to 1.8.5.
+    * Upgrade STM32 Core from 2.2.0 to 2.3.0.
+    * Upgrade ESP32 Core from 2.0.2 to 2.0.5.
+    * Upgrade Teensyduino from 1.56 to 1.57.
+* No significant changes to CPU times.
+
+**v1.6.0**
+
+* Upgrade tool chain
+    * Upgrade Arduino CLI to 0.31.0.
+    * Upgrade Arduino AVR Core to 1.8.6.
+    * Add Seeeduino SAMD 1.8.4
+    * Upgrade STM32 Core to 2.5.0.
+    * Add Adafruit SAMD 1.7.11
+    * Upgrade ESP32 Core to 2.0.9.
+    * Remove Teensy 3.2.
+* Add more PROGMEM support in `KString`, `copyReplaceChar()` and
+  `copyReplaceString()`.
+* No significant changes to memory sizes.
+
 ## Results
 
 The following results are given in unit of microseconds for the single function
@@ -100,8 +124,8 @@ should be pretty close to the time taken by the function if they were isolated.
 ### Arduino Nano
 
 * 16MHz ATmega328P
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
-* Arduino AVR Boards 1.8.4
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
+* Arduino AVR Boards 1.8.5
 * `micros()` has a resolution of 4 microseconds
 
 ```
@@ -125,7 +149,7 @@ CPU:
 ### SparkFun Pro Micro
 
 * 16 MHz ATmega32U4
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
 * SparkFun AVR Boards 1.1.13
 * `micros()` has a resolution of 4 microseconds
 
@@ -137,21 +161,21 @@ CPU:
 +---------------------------+-------------------------+---------+
 | AceCommon function        |     min/    avg/    max | loopCnt |
 |---------------------------+-------------------------+---------|
-| /1000                     |  37.596/ 37.608/ 37.632 |    1000 |
-| udiv1000()                |  15.604/ 15.616/ 15.628 |    1000 |
-| decToBcdDivOnly()         |   5.124/  5.127/  5.132 |    1000 |
-| decToBcdDivMod()          |   4.988/  4.990/  4.992 |    1000 |
-| decToBcd()                |   4.980/  4.991/  5.004 |    1000 |
-| bcdToDec()                |   0.180/  0.189/  0.196 |    1000 |
+| /1000                     |  37.592/ 37.599/ 37.604 |    1000 |
+| udiv1000()                |  15.608/ 15.620/ 15.628 |    1000 |
+| decToBcdDivOnly()         |   5.120/  5.127/  5.132 |    1000 |
+| decToBcdDivMod()          |   4.984/  4.992/  4.996 |    1000 |
+| decToBcd()                |   4.988/  4.998/  5.008 |    1000 |
+| bcdToDec()                |   0.176/  0.188/  0.200 |    1000 |
 +---------------------------+-------------------------+---------+
 
 ```
 
-### STM32
+## SAMD21 Seeeduino XIAO M0
 
-* STM32 "Blue Pill", STM32F103C8, 72 MHz ARM Cortex-M3
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
-* STM32duino 2.2.0
+* SAMD51, 120 MHz ARM Cortex-M4
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
+* Seeeduino SAMD 1.8.4
 
 ```
 Sizes of Objects:
@@ -161,12 +185,60 @@ CPU:
 +---------------------------+-------------------------+---------+
 | AceCommon function        |     min/    avg/    max | loopCnt |
 |---------------------------+-------------------------+---------|
-| /1000                     |   0.080/  0.081/  0.083 |   10000 |
-| udiv1000()                |   0.055/  0.056/  0.058 |   10000 |
-| decToBcdDivOnly()         |   0.131/  0.132/  0.133 |   10000 |
-| decToBcdDivMod()          |   0.117/  0.118/  0.119 |   10000 |
-| decToBcd()                |   0.131/  0.132/  0.134 |   10000 |
-| bcdToDec()                |   0.097/  0.098/  0.100 |   10000 |
+| /1000                     |   2.552/  2.553/  2.554 |    5000 |
+| udiv1000()                |   0.083/  0.084/  0.085 |    5000 |
+| decToBcdDivOnly()         |   1.382/  1.383/  1.384 |    5000 |
+| decToBcdDivMod()          |   2.783/  2.784/  2.785 |    5000 |
+| decToBcd()                |   1.382/  1.383/  1.384 |    5000 |
+| bcdToDec()                |   0.083/  0.084/  0.085 |    5000 |
++---------------------------+-------------------------+---------+
+
+```
+
+### STM32
+
+* STM32 "Blue Pill", STM32F103C8, 72 MHz ARM Cortex-M3
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
+* STM32duino 2.3.0
+
+```
+Sizes of Objects:
+sizeof(TimingStats): 16
+
+CPU:
++---------------------------+-------------------------+---------+
+| AceCommon function        |     min/    avg/    max | loopCnt |
+|---------------------------+-------------------------+---------|
+| /1000                     |   0.081/  0.081/  0.083 |   10000 |
+| udiv1000()                |   0.041/  0.042/  0.043 |   10000 |
+| decToBcdDivOnly()         |   0.103/  0.104/  0.106 |   10000 |
+| decToBcdDivMod()          |   0.117/  0.118/  0.120 |   10000 |
+| decToBcd()                |   0.103/  0.104/  0.105 |   10000 |
+| bcdToDec()                |   0.097/  0.097/  0.099 |   10000 |
++---------------------------+-------------------------+---------+
+
+```
+
+## SAMD51 Adafruit ItsyBitsy M4
+
+* SAMD51, 120 MHz ARM Cortex-M4
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
+* Adafruit SAMD 1.7.11
+
+```
+Sizes of Objects:
+sizeof(TimingStats): 16
+
+CPU:
++---------------------------+-------------------------+---------+
+| AceCommon function        |     min/    avg/    max | loopCnt |
+|---------------------------+-------------------------+---------|
+| /1000                     |   0.063/  0.063/  0.063 |    5000 |
+| udiv1000()                |   0.024/  0.025/  0.025 |    5000 |
+| decToBcdDivOnly()         |   0.070/  0.070/  0.070 |    5000 |
+| decToBcdDivMod()          |   0.070/  0.070/  0.070 |    5000 |
+| decToBcd()                |   0.070/  0.070/  0.070 |    5000 |
+| bcdToDec()                |   0.041/  0.041/  0.042 |    5000 |
 +---------------------------+-------------------------+---------+
 
 ```
@@ -174,7 +246,7 @@ CPU:
 ### ESP8266
 
 * NodeMCU 1.0 clone, 80MHz ESP8266
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
 * ESP8266 Boards 3.0.2
 
 ```
@@ -186,10 +258,10 @@ CPU:
 | AceCommon function        |     min/    avg/    max | loopCnt |
 |---------------------------+-------------------------+---------|
 | /1000                     |   1.897/  1.897/  1.897 |   10000 |
-| udiv1000()                |   0.050/  0.050/  0.050 |   10000 |
+| udiv1000()                |   0.049/  0.050/  0.050 |   10000 |
 | decToBcdDivOnly()         |   0.775/  0.776/  0.776 |   10000 |
 | decToBcdDivMod()          |   1.372/  1.372/  1.373 |   10000 |
-| decToBcd()                |   0.775/  0.775/  0.776 |   10000 |
+| decToBcd()                |   0.775/  0.776/  0.776 |   10000 |
 | bcdToDec()                |   0.049/  0.049/  0.050 |   10000 |
 +---------------------------+-------------------------+---------+
 
@@ -198,8 +270,8 @@ CPU:
 ### ESP32
 
 * ESP32-01 Dev Board, 240 MHz Tensilica LX6
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
-* ESP32 Boards 2.0.2
+* Arduino IDE 1.8.19, Arduino CLI 0.31.0
+* ESP32 Boards 2.0.5
 
 ```
 Sizes of Objects:
@@ -209,37 +281,12 @@ CPU:
 +---------------------------+-------------------------+---------+
 | AceCommon function        |     min/    avg/    max | loopCnt |
 |---------------------------+-------------------------+---------|
-| /1000                     |   0.000/  0.026/  0.065 | 1000000 |
+| /1000                     |   0.000/  0.013/  0.065 | 1000000 |
 | udiv1000()                |   0.025/  0.025/  0.025 | 1000000 |
 | decToBcdDivOnly()         |   0.020/  0.020/  0.020 | 1000000 |
 | decToBcdDivMod()          |   0.029/  0.029/  0.029 | 1000000 |
 | decToBcd()                |   0.020/  0.020/  0.020 | 1000000 |
 | bcdToDec()                |   0.020/  0.020/  0.020 | 1000000 |
-+---------------------------+-------------------------+---------+
-
-```
-
-### Teensy 3.2
-
-* 96 MHz ARM Cortex-M4
-* Arduino IDE 1.8.19, Arduino CLI 0.20.2
-* Teensyduino 1.56
-* Compiler options: "Faster"
-
-```
-Sizes of Objects:
-sizeof(TimingStats): 16
-
-CPU:
-+---------------------------+-------------------------+---------+
-| AceCommon function        |     min/    avg/    max | loopCnt |
-|---------------------------+-------------------------+---------|
-| /1000                     |   0.041/  0.041/  0.041 | 1000000 |
-| udiv1000()                |   0.007/  0.007/  0.007 | 1000000 |
-| decToBcdDivOnly()         |   0.052/  0.052/  0.052 | 1000000 |
-| decToBcdDivMod()          |   0.062/  0.062/  0.062 | 1000000 |
-| decToBcd()                |   0.052/  0.052/  0.052 | 1000000 |
-| bcdToDec()                |   0.052/  0.052/  0.052 | 1000000 |
 +---------------------------+-------------------------+---------+
 
 ```

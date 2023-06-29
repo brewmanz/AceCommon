@@ -1,11 +1,74 @@
 # Changelog
 
 * Unreleased
+* 1.6.2 (2023-06-25)
+    * Add `tstrings.h` which adds various `strxxx_T()` overloaded functions
+      which take either a `const char*` or a `const __FlashStringHelper*`
+      parameter.
+        * Allows writing C++ template code which is agnostic to whether the
+          string argument is in normal memory or flash memory. The compiler will
+          select the specific implementation automatically at compile-time.
+    * `PrintStr.h`
+        * Add special exception for ESP32 on PlatformIO which seems to be
+          stuck using the ESP32 Core from 1.x, which means that its
+          `Print::flush()` is non-virtual instead of virtual (fixed in v2.0.3).
+        * See [PR#28](https://github.com/bxparks/AceCommon/pull/28).
+* 1.6.1 (2023-06-09)
+    * Fix backwards compatibility breakage in `KString()` constructor.
+        * v1.5.2 supported only:
+            * `KString(cstring, cstring)`
+            * `KString(flash, cstring)`
+        * v1.6.0 changed to support only (in prep for next version of AceTime):
+            * `KString(cstring, cstring)`
+            * `KString(flash, flash)`
+            * which breaks old version of AceTime v2.2.3
+        * v1.6.1 adds all remaining combinations:
+            * `KString(flash, cstring)`
+            * `KString(cstring, flash)`
+        * Now works for both old and new AceTime versions.
+* 1.6.0 (2023-06-08)
+    * Add overloaded flash string versions of `copyReplaceChar()` and
+      `copyReplaceString()` which accept `__FlashStringHelper*` pointers in the
+      source string parameters.
+    * Support `keywords[]` in PROGMEM in `KString` class.
+    * Update supported boards and tiers
+        * Add SAMD21 and SAMD51 boards to Tier 1
+            * Add 2 SAMD boards from 2 different companies, to test their
+              Arduino Board software:
+                * Seeeduino XIAO M0 (SAMD21 48MHz ARM Cortex-M0+)
+                * Adafruit ItsyBitsy M4 (SAMD51 120MHz ARM Cortex-M4)
+            * SAMD21 and SAMD51 boards are back in Tier 1, as long as they use
+              the traditional Arduino API instead of the new
+              [ArduinoCore-api](https://github.com/arduino/ArduinoCore-api).
+            * Fortunately most third party SAMD21 and SAMD51 boards continue to
+              use the traditional Arduino API.
+        * Move Teensy 3.2 to Tier 2 ("Should work but not tested often")
+            * This board is entering end-of-life.
+            * As well, the Teensyduino environment integrates with the Arduino
+              IDE and CLI in a way that's different than all other third-party
+              Arduino boards. Some of my automation scripts do not work with
+              Teensyduino, so it becomes very time consuming to test the Teensy
+              boards.
+            * All Teensy boards are now in Tier 2 .
+* 1.5.2 (2022-09-22)
     * Change `hashDjb2(const char*)` to be an inlined function instead of 
-      simply delegating to the template version. This increases type-safety
-      because passing an incorrect array (e.g. `uint16_t[]`) would compile
-      without any errors, and probably not what the user intended since the hash
-      function expects a NUL-terminated string.
+      simply delegating to the template version.
+        * Increases type-safety because passing an incorrect array (e.g.
+          `uint16_t[]`) would compile without any errors, and probably not what
+          the user intended since the hash function expects a NUL-terminated
+          string.
+    * Mark `PrintStr::flush()` as `override`.
+        * The STM32 and ESP32 platforms have finally fixed their implementation
+          of `Print::flush()` to be `virtual`, consistent with other Arduino
+          platforms.
+        * Make exception for ATTinyCore, which does not implement a
+          `Print::flush()`.
+    * Upgrade tool chain
+        * Upgrade Arduino CLI from 0.20.2 to 0.27.1.
+        * Upgrade Arduino AVR Core from 1.8.4 to 1.8.5.
+        * Upgrade STM32 Core from 2.2.0 to 2.3.0.
+        * Upgrade ESP32 Core from 2.0.2 to 2.0.5.
+        * Upgrade Teensyduino from 1.56 to 1.57.
 * 1.5.1 (2022-02-25)
     * **Breaking** Change API of
       [backslash_x_encoding.h](src/backslash_x_encoding) slightly so that the
