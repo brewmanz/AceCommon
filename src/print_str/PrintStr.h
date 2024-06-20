@@ -174,9 +174,6 @@ class PrintStrBase: public Print {
      */
     inline const char* getString() const { return cstr(); }
 
-<<<<<<< HEAD
-    /** Return the length of the internal c-string buffer. */
-=======
     /** Backwards compatible version of cstr(). New code should use cstr(). */
     const char* getCstr() const { return cstr(); }
 
@@ -184,7 +181,6 @@ class PrintStrBase: public Print {
      * Return the length of the internal c-string buffer, not including the
      * NUL terminator.
      */
->>>>>>> refs/heads/Add_clear_getString
     size_t length() const { return index_; }
 
   private: // add this to refactor 'old' code; comment out to allow 'old' code to work
