@@ -150,11 +150,12 @@ class PrintStrBase: public Print {
   #endif
       index_ = 0;
     }
+#if 0
     /**
      * Clear the internal buffer, alternative in attempting some compatibility with other options e.g. PrintString
      */
     inline void clear() { flush(); }
-
+#endif
     /**
      * Return the NUL terminated c-string buffer. After the buffer is no longer
      * needed, the flush() method should be called to reset the internal buffer
@@ -169,6 +170,7 @@ class PrintStrBase: public Print {
       buf_[index_] = '\0';
       return buf_;
     }
+#if 0
     /**
      * Return the NUL terminated c-string buffer, alternative in attempting some compatibility with other options e.g. PrintString
      */
@@ -176,13 +178,14 @@ class PrintStrBase: public Print {
 
     /** Backwards compatible version of cstr(). New code should use cstr(). */
     const char* getCstr() const { return cstr(); }
-
+#endif
     /**
      * Return the length of the internal c-string buffer, not including the
      * NUL terminator.
      */
     size_t length() const { return index_; }
 
+#if 1
   private: // add this to refactor 'old' code; comment out to allow 'old' code to work
     /** Backwards compatible version of flush(). New code should use flush(). */
     void clear() { flush(); }
@@ -191,7 +194,7 @@ class PrintStrBase: public Print {
     const char* getCstr() const { return cstr(); }
     /** Backwards compatible version of cstr(). New code should use cstr(). */
     const char* getString() const { return cstr(); }
-
+#endif
   protected:
     /**
      * Constructor.
