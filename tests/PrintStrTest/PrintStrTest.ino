@@ -1,4 +1,9 @@
 #line 2 "PrintStrTest.ino"
+#ifdef NANO_OLD_BOOTLOADER
+ #define BAUDRATE 38400 // old boot loader drops @ 57K6
+#else
+ #define BAUDRATE 115200 // ESP8266 default of 74880 not supported on Linux
+#endif
 
 #include <AUnit.h>
 #include <AceCommon.h>
@@ -32,14 +37,128 @@ static void truncateString(int length) {
 // a max stack size of 4kB, even though it has 80kB of RAM.
 //----------------------------------------------------------------------------
 
+test(PrintStrTest, indexOf_KeyInFlash) {
+  PrintStr<30> printStr;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  const __FlashStringHelper* pFSH;
+  // key 'aei'
+  pFSH = F("aei");
+  // indexOf Key 'aei' not found
+  n = printStr.indexOf(pFSH);
+  assertEqual(-1, n);
+
+  // key 'a'
+  pFSH = F("a");
+  // indexOf Key at start
+  n = printStr.indexOf(pFSH);
+  assertEqual(0, n);
+
+  // key 'ab'
+  pFSH = F("ab");
+  // indexOf Key at start
+  n = printStr.indexOf(pFSH);
+  assertEqual(0, n);
+
+  // key 'abd'
+  pFSH = F("abd");
+  // indexOf Key not found
+  n = printStr.indexOf(pFSH);
+  assertEqual(-1, n);
+
+  // key 'y'
+  pFSH = F("y");
+  // indexOf Key near end
+  n = printStr.indexOf(pFSH);
+  assertEqual(24, n);
+
+  // key 'yz'
+  pFSH = F("yz");
+  // indexOf Key near end
+  n = printStr.indexOf(pFSH);
+  assertEqual(24, n);
+
+  // key 'yza'
+  pFSH = F("yza");
+  // indexOf Key not found
+  n = printStr.indexOf(pFSH);
+  assertEqual(-1, n);
+}
+test(PrintStrTest, indexOf_KeyInRAM) {
+  PrintStr<30> printStr, printKey;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  // key 'aei'
+  printKey.flush();
+  n = printKey.print(F("aei"));
+  assertEqual(3, n);
+  assertEqual(n, (int)printKey.length());
+  // indexOf Key 'aei' not found
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(-1, n);
+
+  // key 'a'
+  printKey.flush();
+  printKey.print('a');
+  // indexOf Key at start
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(0, n);
+
+  // key 'ab'
+  printKey.print('b');
+  // indexOf Key at start
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(0, n);
+
+  // key 'abd'
+  printKey.print('d');
+  // indexOf Key not found
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(-1, n);
+
+  // key 'y'
+  printKey.flush();
+  printKey.print('y');
+  // indexOf Key near end
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(24, n);
+
+  // key 'yz'
+  printKey.print('z');
+  // indexOf Key near end
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(24, n);
+
+  // key 'yza'
+  printKey.print('a');
+  // indexOf Key not found
+  n = printStr.indexOf(printKey.cstr());
+  assertEqual(-1, n);
+}
+
 test(PrintStrTest, flush) {
   PrintStr<10> printStr;
   size_t n = printStr.print('a');
+  assertEqual("a", printStr.cstr());
   assertEqual((size_t) 1, n);
-  assertEqual((size_t) 1, printStr.length());
+  assertEqual((size_t) n, printStr.length());
 
   printStr.flush();
   assertEqual("", printStr.cstr());
+  assertEqual((size_t) 0, printStr.length());
+
+  n = printStr.print("zyx");
+  assertEqual("zyx", printStr.cstr());
+  assertEqual((size_t) 3, n);
+  assertEqual((size_t) n, printStr.length());
+
+  printStr.flush();
+  assertEqual("", printStr.cstr());
+  assertEqual((size_t) 0, printStr.length());
 }
 
 test(PrintStrTest, print_underSized) {
@@ -133,7 +252,7 @@ void setup() {
   delay(1000); // wait for stability on some boards to prevent garbage Serial
 #endif
 
-  SERIAL_PORT_MONITOR.begin(115200);
+  SERIAL_PORT_MONITOR.begin(BAUDRATE);
   while(!SERIAL_PORT_MONITOR); // for the Arduino Leonardo/Micro only
 
 #if defined(EPOXY_DUINO)

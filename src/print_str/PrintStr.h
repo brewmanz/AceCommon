@@ -156,6 +156,22 @@ class PrintStrBase: public Print {
      */
     size_t length() const { return index_; }
 
+    /**
+     * Return the 0-based index of substring, if found. Or -1 if not found
+     */
+    int indexOf(const char* sub) const {
+      const char* pStr = cstr();
+      const char* pPos = strstr(pStr, sub);
+      if (nullptr == pPos) { return -1; } // if not found, return -1
+      return (pPos - pStr); // found, so return offset from start
+    }
+    int indexOf(const __FlashStringHelper* sub) const {
+      const char* pStr = cstr();
+      const char* pPos = strstr_P(pStr, (const char*) sub);
+      if (nullptr == pPos) { return -1; } // if not found, return -1
+      return (pPos - pStr); // found, so return offset from start
+    }
+
   protected:
     /**
      * Constructor.
@@ -170,7 +186,7 @@ class PrintStrBase: public Print {
   private:
     // Disable copy constructor and assignment operator
     PrintStrBase(const PrintStrBase&) = delete;
-    PrintStrBase& operator=(const PrintStrBase&) = delete;
+    // NO! allow this // PrintStrBase& operator=(const PrintStrBase&) = delete;
 
     // These member variables are declared together for more efficient packing
     // on 32-bit processors.
@@ -270,6 +286,46 @@ template <uint16_t SIZE>
 class PrintStr: public PrintStrBase {
   public:
     PrintStr(): PrintStrBase(SIZE, actualBuf_) {}
+
+    /** allow simple assignment of flash string. */
+    // ideal but prohibited // PrintStr<SIZE>& operator = (const __FlashStringHelper *str){
+    const __FlashStringHelper * operator = (const __FlashStringHelper *str){
+      if (str) {
+        flush();
+        //write(str, strlen_P((PGM_P)str));
+        print(str);
+      } else {
+        // follow write() philosophy and leave existing value as-is
+      }
+      return str;
+      // ideal but prohibited // return *this;
+    }
+
+    /** allow simple assignment of sz/C string. */
+    // ideal but prohibited // PrintStr<SIZE>& operator = (const char *str){
+    const char * operator = (const char *str){
+      if (str) {
+        flush();
+        print(str);
+      } else {
+        // follow write() philosophy and leave existing value as-is
+      }
+      return str;
+      // ideal but prohibited // return *this;
+    }
+
+    /** allow simple assignment of PrintStrBase. */
+    // ideal but prohibited // PrintStr<SIZE>& operator = (const PrintStrBase& str){
+    const PrintStrBase& operator = (const PrintStrBase& str){
+      if (&str) {
+        flush();
+        print(str.cstr());
+      } else {
+        // follow write() philosophy and leave existing value as-is
+      }
+      return str;
+      // ideal but prohibited // return *this;
+    }
 
   private:
     char actualBuf_[SIZE];
