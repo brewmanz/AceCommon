@@ -37,6 +37,151 @@ static void truncateString(int length) {
 // a max stack size of 4kB, even though it has 80kB of RAM.
 //----------------------------------------------------------------------------
 
+test(PrintStrTest, startsWith_KeyInFlash) {
+  PrintStr<30> printStr;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  const __FlashStringHelper* pFSH;
+  bool found;
+
+  // key 'aei'
+  pFSH = F("aei");
+  // startsWith Key 'aei' false
+  found = printStr.startsWith(pFSH);
+  assertEqual(false, found);
+
+  // key 'a'
+  pFSH = F("a");
+  // startsWith Key true
+  found = printStr.startsWith(pFSH);
+  assertEqual(true, found);
+
+  // key 'ab'
+  pFSH = F("ab");
+  // startsWith Key true
+  found = printStr.startsWith(pFSH);
+  assertEqual(true, found);
+
+  // key 'abd'
+  pFSH = F("abd");
+  // startsWith Key false
+  found = printStr.startsWith(pFSH);
+  assertEqual(false, found);
+
+  // key 'y'
+  pFSH = F("y");
+  // startsWith Key false
+  found = printStr.startsWith(pFSH);
+  assertEqual(false, found);
+
+  // key 'yz'
+  pFSH = F("yz");
+  // startsWith Key false
+  found = printStr.startsWith(pFSH);
+  assertEqual(false, found);
+}
+test(PrintStrTest, startsWith_KeyInPrintStr) {
+  PrintStr<30> printStr, printKey;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  bool found;
+
+  // key 'aei'
+  printKey.flush();
+  n = printKey.print(F("aei"));
+  assertEqual(3, n);
+  assertEqual(n, (int)printKey.length());
+  // startsWith Key false
+  found = printStr.startsWith(printKey);
+  assertEqual(false, found);
+
+  // key 'a'
+  printKey.flush();
+  printKey.print('a');
+  // startsWith Key true
+  found = printStr.startsWith(printKey);
+  assertEqual(true, found);
+
+  // key 'ab'
+  printKey.print('b');
+  // startsWith Key true
+  found = printStr.startsWith(printKey);
+  assertEqual(true, found);
+
+  // key 'abd'
+  printKey.print('d');
+  // startsWith Key false
+  found = printStr.startsWith(printKey);
+  assertEqual(false, found);
+
+  // key 'y'
+  printKey.flush();
+  printKey.print('y');
+  // startsWith Key false
+  found = printStr.startsWith(printKey);
+  assertEqual(false, found);
+
+  // key 'yz'
+  printKey.print('z');
+  // startsWith Key false
+  found = printStr.startsWith(printKey);
+  assertEqual(false, found);
+}
+
+test(PrintStrTest, startsWith_KeyInRAM) {
+  PrintStr<30> printStr, printKey;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  bool found;
+
+  // key 'aei'
+  printKey.flush();
+  n = printKey.print(F("aei"));
+  assertEqual(3, n);
+  assertEqual(n, (int)printKey.length());
+  // startsWith Key false
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(false, found);
+
+  // key 'a'
+  printKey.flush();
+  printKey.print('a');
+  // startsWith Key true
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(true, found);
+
+  // key 'ab'
+  printKey.print('b');
+  // startsWith Key true
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(true, found);
+
+  // key 'abd'
+  printKey.print('d');
+  // startsWith Key false
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(false, found);
+
+  // key 'y'
+  printKey.flush();
+  printKey.print('y');
+  // startsWith Key false
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(false, found);
+
+  // key 'yz'
+  printKey.print('z');
+  // startsWith Key false
+  found = printStr.startsWith(printKey.cstr());
+  assertEqual(false, found);
+}
+
 test(PrintStrTest, indexOf_KeyInFlash) {
   PrintStr<30> printStr;
   int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
@@ -84,6 +229,59 @@ test(PrintStrTest, indexOf_KeyInFlash) {
   pFSH = F("yza");
   // indexOf Key not found
   n = printStr.indexOf(pFSH);
+  assertEqual(-1, n);
+}
+test(PrintStrTest, indexOf_KeyInPrintStr) {
+  PrintStr<30> printStr, printKey;
+  int n = printStr.print(F("abcdefghijklmnopqrstuvwxyz"));
+  assertEqual(26, n);
+  assertEqual(n, (int)printStr.length());
+
+  // key 'aei'
+  printKey.flush();
+  n = printKey.print(F("aei"));
+  assertEqual(3, n);
+  assertEqual(n, (int)printKey.length());
+  // indexOf Key 'aei' not found
+  n = printStr.indexOf(printKey);
+  assertEqual(-1, n);
+
+  // key 'a'
+  printKey.flush();
+  printKey.print('a');
+  // indexOf Key at start
+  n = printStr.indexOf(printKey);
+  assertEqual(0, n);
+
+  // key 'ab'
+  printKey.print('b');
+  // indexOf Key at start
+  n = printStr.indexOf(printKey);
+  assertEqual(0, n);
+
+  // key 'abd'
+  printKey.print('d');
+  // indexOf Key not found
+  n = printStr.indexOf(printKey);
+  assertEqual(-1, n);
+
+  // key 'y'
+  printKey.flush();
+  printKey.print('y');
+  // indexOf Key near end
+  n = printStr.indexOf(printKey);
+  assertEqual(24, n);
+
+  // key 'yz'
+  printKey.print('z');
+  // indexOf Key near end
+  n = printStr.indexOf(printKey);
+  assertEqual(24, n);
+
+  // key 'yza'
+  printKey.print('a');
+  // indexOf Key not found
+  n = printStr.indexOf(printKey);
   assertEqual(-1, n);
 }
 test(PrintStrTest, indexOf_KeyInRAM) {

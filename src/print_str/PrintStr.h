@@ -157,19 +157,48 @@ class PrintStrBase: public Print {
     size_t length() const { return index_; }
 
     /**
-     * Return the 0-based index of substring, if found. Or -1 if not found
+     * Return whether the 0-based index of substring, if found. Or -1 if not found
      */
-    int indexOf(const char* sub) const {
+    int indexOf(const char* substring) const {
       const char* pStr = cstr();
-      const char* pPos = strstr(pStr, sub);
+      const char* pPos = strstr(pStr, substring);
       if (nullptr == pPos) { return -1; } // if not found, return -1
       return (pPos - pStr); // found, so return offset from start
     }
-    int indexOf(const __FlashStringHelper* sub) const {
+    /**
+     * Return whether the 0-based index of substring, if found. Or -1 if not found
+     */
+    int indexOf(const PrintStrBase& substring) const { return indexOf(substring.cstr()); }
+    /**
+     * Return whether the 0-based index of substring, if found. Or -1 if not found
+     */
+    int indexOf(const __FlashStringHelper* substring) const {
       const char* pStr = cstr();
-      const char* pPos = strstr_P(pStr, (const char*) sub);
+      const char* pPos = strstr_P(pStr, (const char*) substring);
       if (nullptr == pPos) { return -1; } // if not found, return -1
       return (pPos - pStr); // found, so return offset from start
+    }
+    /**
+     * Return whether the internal string starts with substring, true if it does, or false if not
+     */
+    bool startsWith(const char* substring) const {
+      const char* pStr = cstr();
+      const char* pPos = strstr(pStr, substring); // HACK improve code
+      if (nullptr == pPos) { return false; } // if not found, return -1
+      return ((pPos - pStr) == 0); // return true if found at start
+    }
+    /**
+     * Return whether the internal string starts with substring, true if it does, or false if not
+     */
+    bool startsWith(const PrintStrBase& substring) const { return startsWith(substring.cstr()); }
+    /**
+     * Return whether the internal string starts with substring, true if it does, or false if not
+     */
+    bool startsWith(const __FlashStringHelper* substring) const {
+      const char* pStr = cstr();
+      const char* pPos = strstr_P(pStr, (const char*) substring); // HACK improve code
+      if (nullptr == pPos) { return false; } // if not found, return -1
+      return ((pPos - pStr) == 0); // return true if found at start
     }
 
   protected:
