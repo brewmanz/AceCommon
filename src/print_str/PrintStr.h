@@ -62,6 +62,25 @@ namespace ace_common {
  */
 class PrintStrBase: public Print {
   public:
+    /** allow simple assignment; just flush and copy RHS. */
+    PrintStrBase& operator=(const PrintStrBase& rhs){
+      flush();
+      print(rhs.cstr());
+      return *this;
+    }
+    /** allow simple assignment; just flush and copy RHS. */
+    PrintStrBase& operator=(const __FlashStringHelper* rhs){
+      flush();
+      print(rhs);
+      return *this;
+    }
+    /** allow simple assignment; just flush and copy RHS. */
+    PrintStrBase& operator=(const char* rhs){
+      flush();
+      print(rhs);
+      return *this;
+    }
+
     /** Write a single character into the internal buffer. */
     size_t write(uint8_t c) override {
       if (index_ < size_ - 1) {
@@ -130,7 +149,11 @@ class PrintStrBase: public Print {
     void flush() override {
   #endif
       index_ = 0;
+  #if 1 // just to match braces
     }
+  #else // just to match braces
+    }
+  #endif // just to match braces
 
     /**
      * Return the NUL terminated c-string buffer. After the buffer is no longer
@@ -346,12 +369,12 @@ class PrintStr: public PrintStrBase {
     /** allow simple assignment of PrintStrBase. */
     // ideal but prohibited // PrintStr<SIZE>& operator = (const PrintStrBase& str){
     const PrintStrBase& operator = (const PrintStrBase& str){
-      if (&str) {
+      //if (&str) {
         flush();
         print(str.cstr());
-      } else {
-        // follow write() philosophy and leave existing value as-is
-      }
+      //} else {
+      //  // follow write() philosophy and leave existing value as-is
+      //}
       return str;
       // ideal but prohibited // return *this;
     }
