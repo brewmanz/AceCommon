@@ -180,6 +180,11 @@ class PrintStrBase: public Print {
     size_t length() const { return index_; }
 
     /**
+     * mimic other STL capacity functions
+     */
+    uint16_t inline capacity() const { return size_; }
+
+    /**
      * Return whether the 0-based index of substring, if found. Or -1 if not found
      */
     int indexOf(const char* substring) const {

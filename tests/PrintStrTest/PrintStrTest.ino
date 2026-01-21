@@ -338,6 +338,17 @@ test(PrintStrTest, indexOf_KeyInRAM) {
   assertEqual(-1, n);
 }
 
+test(PrintStrTest, capacity) {
+  {
+    PrintStr<30> printStr;
+    assertEqual(30, printStr.capacity());
+  }
+  {
+    PrintStr<2> printStr;
+    assertEqual(2, printStr.capacity());
+  }
+}
+
 test(PrintStrTest, flush) {
   PrintStr<10> printStr;
   size_t n = printStr.print('a');
@@ -396,6 +407,17 @@ test(PrintStrTest, write_overSized) {
 //----------------------------------------------------------------------------
 // Test PrintStrN(size) which creates the char array buffer on the heap.
 //----------------------------------------------------------------------------
+
+test(PrintStrNTest, capacity) {
+  {
+    PrintStrN printStr(30);
+    assertEqual(30, printStr.capacity());
+  }
+  {
+    PrintStrN printStr(2);
+    assertEqual(2, printStr.capacity());
+  }
+}
 
 test(PrintStrNTest, flush) {
   PrintStrN printStr(10);
